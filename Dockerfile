@@ -57,37 +57,30 @@ RUN apt-get -y install vtun lxc
 #Support for openflow module (requires some boost libraries)
 RUN apt-get -y install libboost-signals-dev libboost-filesystem-dev
 
-#Developer user
-RUN apt-get install -y sudo
-RUN mkdir -p /home/developer && \
-    echo "developer:x:1000:1000:Developer,,,:/home/developer:/bin/bash" >> /etc/passwd && \
-    echo "developer:x:1000:" >> /etc/group && \
-    sudo echo "developer ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/developer && \
-    sudo chmod 0440 /etc/sudoers.d/developer && \
-    sudo chown developer:developer -R /home/developer && \
-    sudo chown root:root /usr/bin/sudo && \
-    chmod 4755 /usr/bin/sudo
-
 #Download ns-3
-RUN apt-get install -y wget && mkdir -p /home/developer/workspace && wget http://www.nsnam.org/release/ns-allinone-3.27.tar.bz2 -O /home/developer/workspace/ns-allinone-3.27.tar.bz2 -q 
+WORKDIR /usr
+RUN apt-get install -y wget && wget http://www.nsnam.org/release/ns-allinone-3.27.tar.bz2 
 
 #Unpack ns-3 tarball
-RUN apt-get install -y bzip2 && tar xjf /home/developer/workspace/ns-allinone-3.27.tar.bz2 -C /home/developer/workspace && rm /home/developer/workspace/ns-allinone-3.27.tar.bz2 
+RUN tar -xf ns-allinone-3.27.tar.bz2
+
+#Build ns-3
+RUN cd ns-allinone-3.27 && ./build.py --enable-examples --enable-tests
 
 #JAVA-install
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y  software-properties-common && \
-    add-apt-repository ppa:webupd8team/java -y && \
-    apt-get update && \
-    echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections && \
-    apt-get install -y oracle-java8-installer && \
-   apt-get clean
+#RUN apt-get update && \
+#    apt-get upgrade -y && \
+#    apt-get install -y  software-properties-common && \
+#    add-apt-repository ppa:webupd8team/java -y && \
+#    apt-get update && \
+#    echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections && \
+#    apt-get install -y oracle-java8-installer && \
+#   apt-get clean
 
 #Download eclipse
-RUN wget -O /tmp/eclipse.tar.gz http://ftp-stud.fht-esslingen.de/pub/Mirrors/eclipse/technology/epp/downloads/release/oxygen/1a/eclipse-cpp-oxygen-1a-linux-gtk-x86_64.tar.gz 
-RUN tar -zxvf /tmp/eclipse.tar.gz -C /home/developer
-RUN ln -s /home/developer/eclipse/eclipse /usr/local/bin/eclipse
+#RUN wget -O /tmp/eclipse.tar.gz http://ftp-stud.fht-esslingen.de/pub/Mirrors/eclipse/technology/epp/downloads/release/oxygen/1a/eclipse-cpp-oxygen-1a-linux-gtk-x86_64.tar.gz 
+#RUN tar -zxvf /tmp/eclipse.tar.gz -C /home/developer
+#RUN ln -s /home/developer/eclipse/eclipse /usr/local/bin/eclipse
 #RUN apt-get -y install adwaita-icon-theme ant ant-optional binfmt-support dbus-x11 default-jdk default-jdk-headless default-jre default-jre-headless fastjar fontconfig gconf-service gconf-service-backend #gconf2 gconf2-common gtk-update-icon-cache hicolor-icon-theme humanity-icon-theme jarwrapper junit junit4 libapache-pom-java \
 #  libart-2.0-2 libasm-java libasm3-java libasound2 libasound2-data libatk1.0-0 libatk1.0-data libavahi-client3 libavahi-common-data libavahi-common3 libavahi-glib1 libbonobo2-0 libbonobo2-common \
 #  libbonoboui2-0 libbonoboui2-common libcairo2 libcanberra0 libcglib-java libcommons-beanutils-java libcommons-cli-java libcommons-codec-java libcommons-collections3-java libcommons-compress-java \
@@ -100,16 +93,11 @@ RUN ln -s /home/developer/eclipse/eclipse /usr/local/bin/eclipse
 #  libpixman-1-0 libregexp-java librsvg2-2 librsvg2-common libservlet3.1-java libswt-cairo-gtk-3-jni libswt-glx-gtk-3-jni libswt-gnome-gtk-3-jni libswt-gtk-3-java libswt-gtk-3-jni libswt-webkit-gtk-3-jni \
 #  libtdb1 libthai-data libthai0 libtiff5 libtomcat8-java libvorbis0a libvorbisfile3 libxcb-render0 libxcb-shm0 libxcursor1 sat4j sound-theme-freedesktop ubuntu-mono
 
+#Cleanup
+RUN apt-get clean && \
+  rm -rf /var/lib/apt && \
+  rm /usr/ns-allinone-3.27.tar.bz2
 
 
-#Build ns-3
-#RUN sudo -H -u developer bash -c '/home/developer/workspace/ns-allinone-3.27/build.py'
 
-RUN sudo chown developer:developer -R /home/developer
-
-USER developer 
-ENV HOME /home/developer
-WORKDIR /home/developer
-
-CMD /bin/bash
 
